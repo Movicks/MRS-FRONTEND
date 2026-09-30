@@ -165,10 +165,7 @@ const router = createBrowserRouter(
                   <Route path='patient-history/:patientId' element={<PatientMedicalHistory />} />
                 </Route>
               </Route>
-<<<<<<< HEAD
-              {/* Eye Doctor Routes */}
-=======
->>>>>>> 480f52e749c3ebc07c22522ac43e04ffd9fd68c5
+
               <Route element={<RequireAuth roles={["clinical"]} departments={["eyedoctor"]} />}>
                 <Route path='eye'>
                   <Route index element={<EyeDoctorDashboard />} />
