@@ -1,0 +1,175 @@
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../api/apiClient";
+
+export type DrugItem = {
+  priceItemId?: string;
+  category?: string;
+  unit?: string;
+  name: string;
+  dosage: string;
+  quantity: number;
+  instructions?: string;
+  dispensed?: boolean;
+};
+
+export type Patient = {
+  _id: string;
+  surname: string;
+  firstname: string;
+  middlename: string;
+  veteran?: boolean;
+  serviceNumber?: string;
+  rank?: string;
+  membershipNumber?: string;
+  sex?: string;
+  age?: number;
+  dateOfBirth?: string;
+  country?: string;
+  stateOfOrigin?: string;
+  lga?: string;
+  address?: string;
+  religion?: string;
+  maritalStatus?: string;
+  phone?: string;
+  occupation?: string;
+  genotype?: string;
+  bloodGroup?: string;
+  patientStatus?: string;
+  patientQueue?: string;
+  nhiaStatus?: string;
+  nhiaUpdatedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  nok?: { name?: string; relationship?: string; phone?: string; address?: string };
+};
+
+export type PharmacyPatient = Patient & {
+  deskState: string;
+  prescription?: string;
+  drugs?: DrugItem[];
+  pharmacy?: {
+    cleared?: boolean;
+    hasInvoice?: boolean;
+    invoiceId?: string;
+    billingRoute?: string;
+    paymentStatus?: string;
+    nhiaStampStatus?: string;
+    copayStatus?: string;
+    patientAmountDue?: number;
+    nhiaAmountDue?: number;
+    totalCost?: number;
+    hasBed?: boolean;
+    admitted?: boolean;
+    admittedWardUnit?: string;
+    admissionId?: string;
+  };
+};
+
+export const getPatientsApi = async (q?: string): Promise<Patient[]> => {
+  const res = await api.get("/patients", { params: q ? { q } : undefined });
+  return res.data as Patient[];
+};
+
+export const getPaypointReferredPatientsApi = async (q?: string): Promise<Patient[]> => {
+  const res = await api.get("/patients/paypoint/referred", { params: q ? { q } : undefined });
+  return res.data as Patient[];
+};
+
+export const getNHIAReferredPatientsApi = async (q?: string): Promise<Patient[]> => {
+  const res = await api.get("/patients/nhia/referred", { params: q ? { q } : undefined });
+  return res.data as Patient[];
+};
+
+export type NHIAStats = {
+  period?: "daily" | "monthly" | "yearly";
+  value?: string;
+  awaiting: number;
+  awaitingCivilian: number;
+  awaitingPersonnel: number;
+  cleared: number;
+  clearedCivilian: number;
+  clearedPersonnel: number;
+  notCleared: number;
+  notClearedCivilian: number;
+  notClearedPersonnel: number;
+};
+
+export const getNHIAStatsApi = async (params?: { period?: "daily" | "monthly" | "yearly"; value?: string }): Promise<NHIAStats> => {
+  const res = await api.get("/patients/nhia/stats", { params });
+  return res.data as NHIAStats;
+};
+
+export const getPatientByIdApi = async (id: string): Promise<Patient> => {
+  const res = await api.get(`/patients/${encodeURIComponent(id)}`);
+  return res.data as Patient;
+};
+
+export const usePatientByIdQuery = (id?: string) => {
+  return useQuery({
+    queryKey: ["patient", id ?? "none"],
+    queryFn: () => getPatientByIdApi(id || ""),
+    enabled: !!id,
+  });
+};
+
+export const usePatientsQuery = (q?: string) => {
+  return useQuery({
+    queryKey: ["patients", q ?? ""],
+    queryFn: () => getPatientsApi(q),
+  });
+};
+
+export const usePaypointReferredPatientsQuery = (q?: string) => {
+  return useQuery({
+    queryKey: ["patients", "paypoint", q ?? ""],
+    queryFn: () => getPaypointReferredPatientsApi(q),
+  });
+};
+
+export const useNHIAReferredPatientsQuery = (q?: string) => {
+  return useQuery({
+    queryKey: ["patients", "nhia", q ?? ""],
+    queryFn: () => getNHIAReferredPatientsApi(q),
+  });
+};
+
+export const useNHIAStatsQuery = (params?: { period?: "daily" | "monthly" | "yearly"; value?: string }) => {
+  return useQuery({
+    queryKey: ["patients", "nhia", "stats", params?.period ?? "daily", params?.value ?? ""],
+    queryFn: () => getNHIAStatsApi(params),
+  });
+};
+
+export const getPharmacyReferredPatientsApi = async (q?: string): Promise<PharmacyPatient[]> => {
+  const res = await api.get("/patients/pharmacy/referred", { params: q ? { q } : undefined });
+  return res.data as PharmacyPatient[];
+};
+
+export const addPatientToPharmacyApi = async (patientId: string, data?: { prescription?: string; drugs?: DrugItem[] }): Promise<any> => {
+  const res = await api.post("/patients/pharmacy/add", { patientId, ...data });
+  return res.data;
+};
+
+export const updatePharmacyDeskStateApi = async (patientId: string, deskState: string, data?: { prescription?: string; drugs?: DrugItem[] }): Promise<any> => {
+  const res = await api.patch(`/patients/pharmacy/${encodeURIComponent(patientId)}/desk-state`, { deskState, ...data });
+  return res.data;
+};
+
+export const usePharmacyReferredPatientsQuery = (q?: string) => {
+  return useQuery({
+    queryKey: ["patients", "pharmacy", q ?? ""],
+    queryFn: () => getPharmacyReferredPatientsApi(q),
+  });
+};
+
+export type NHIAAccess = {
+  patientId: string;
+  status: "cleared" | "not_cleared" | "awaiting" | "unknown";
+  hasAccess: boolean;
+  updatedAt?: string | null;
+};
+
+export const getNHIAAccessApi = async (patientId: string): Promise<NHIAAccess> => {
+  const res = await api.get(`/patients/${encodeURIComponent(patientId)}/nhia/access`);
+  return res.data as NHIAAccess;
+};
