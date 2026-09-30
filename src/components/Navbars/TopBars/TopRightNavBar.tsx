@@ -1,0 +1,36 @@
+import Searchbar from '@/components/searchbar/SearchBar';
+import { useState } from 'react';
+import { CiSearch } from "react-icons/ci";
+import Notification from '../Notification';
+import UserProfile from '@/components/userProfile/UserProfile';
+
+
+export default function TopRightNavbar() {
+  const [showSearch, setShowSearch] = useState(true);
+
+  const toggleSearch = () => setShowSearch(prev => !prev);
+
+  return (
+    <section className='flex items-center gap-2 pl-4 md:pr-4 py-2 relative'>
+        <div
+            className={`transition-all duration-300 ease-in-out transform origin-right ${
+            showSearch ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+            }`}
+        >
+            <Searchbar/>
+        </div>
+
+        <button
+            onClick={toggleSearch}
+            className='flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-gray-50/15 focus:bg-bg-gray-50/20 hover:bg-gray-50/20 transition duration-200'
+        >
+            <CiSearch className="w-7 h-7 text-gray-300" />
+        </button>
+        
+        <div className='flex items-center justify-end gap-2 text-gray-300'>
+            <Notification />
+            <UserProfile className='hidden md:flex border-r-2 border-gray-300'/>
+        </div>
+    </section>
+  );
+}
